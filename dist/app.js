@@ -17,7 +17,7 @@ VÒNG 2 · CÁ NHÂN
 3. Mỗi câu hỏi có tối đa 3 người trả lời.
 4. Vòng 2 kết thúc khi có 3 người trả lời đúng hoặc chỉ còn 3 ứng viên chưa bị loại.`;
 
-const defaultQuestions = [
+const legacyExampleQuestions = [
   ['Thủ đô của Việt Nam là thành phố nào?', ['Hà Nội', 'Huế', 'Đà Nẵng', 'TP. Hồ Chí Minh'], 0],
   ['Hành tinh nào gần Mặt Trời nhất?', ['Sao Kim', 'Sao Hỏa', 'Sao Thủy', 'Trái Đất'], 2],
   ['Một thế kỷ có bao nhiêu năm?', ['10 năm', '50 năm', '100 năm', '1.000 năm'], 2],
@@ -30,7 +30,7 @@ const defaultQuestions = [
   ['Một tam giác có tổng ba góc bằng bao nhiêu độ?', ['90°', '180°', '270°', '360°'], 1]
 ].map((q, i) => ({ id: `r1-${i + 1}`, text: q[0], options: q[1], correct: q[2] }));
 
-const defaultRound2Questions = [
+const legacyExampleRound2Questions = [
   ['Trong hệ Mặt Trời, hành tinh nào được gọi là “Hành tinh Đỏ”?', ['Sao Kim', 'Sao Hỏa', 'Sao Mộc', 'Sao Thổ'], 1],
   ['Từ nào sau đây là từ láy?', ['Nhà cửa', 'Long lanh', 'Học tập', 'Xe đạp'], 1],
   ['Số nguyên tố nhỏ nhất là số nào?', ['0', '1', '2', '3'], 2]
@@ -40,20 +40,29 @@ function initialData() {
   return {
     rules: defaultRules,
     teams: TEAM_IDS.map((id, i) => ({ id, name: `Nhóm ${id}`, color: TEAM_COLORS[i] })),
-    questions: defaultQuestions,
-    round2Questions: defaultRound2Questions,
+    questions: [],
+    round2Questions: [],
     round2Players: []
   };
+}
+
+function isLegacyExampleSet(questions, examples) {
+  return Array.isArray(questions)
+    && questions.length === examples.length
+    && questions.every((question, index) => question.text === examples[index].text
+      && question.correct === examples[index].correct
+      && question.options?.every((option, optionIndex) => option === examples[index].options[optionIndex]));
 }
 
 function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY));
-    if (saved?.teams?.length && saved?.questions?.length) {
+    if (saved?.teams?.length) {
       return {
         ...initialData(),
         ...saved,
-        round2Questions: saved.round2Questions?.length === 3 ? saved.round2Questions : defaultRound2Questions,
+        questions: isLegacyExampleSet(saved.questions, legacyExampleQuestions) ? [] : (Array.isArray(saved.questions) ? saved.questions : []),
+        round2Questions: isLegacyExampleSet(saved.round2Questions, legacyExampleRound2Questions) ? [] : (Array.isArray(saved.round2Questions) ? saved.round2Questions : []),
         round2Players: Array.isArray(saved.round2Players) ? saved.round2Players : []
       };
     }
@@ -91,8 +100,8 @@ function showScreen(id) {
 }
 
 function updateHomeStats() {
-  $('#homeStats').textContent = `${data.questions.length} câu vòng 1 · 3 câu vòng 2`;
-  $('#questionCountBadge').textContent = `${data.questions.length}+3`;
+  $('#homeStats').textContent = `${data.questions.length} câu vòng 1 · ${data.round2Questions.length} câu vòng 2`;
+  $('#questionCountBadge').textContent = `${data.questions.length}+${data.round2Questions.length}`;
 }
 
 function escapeHtml(value) {
@@ -102,11 +111,14 @@ function escapeHtml(value) {
 }
 
 function renderQuestionEditors(questions, round) {
+  if (!questions.length) {
+    return `<div class="empty-question-state"><strong>Chưa có câu hỏi Vòng ${round}</strong><span>Nhấn “Thêm câu hỏi” để bắt đầu tạo nội dung.</span></div>`;
+  }
   return questions.map((question, index) => `
     <article class="question-editor-card" data-qid="${question.id}" data-round="${round}">
       <div class="question-editor-head">
         <strong>Câu ${String(index + 1).padStart(2, '0')}</strong>
-        ${round === 1 ? `<button class="delete-btn" data-delete-question="${question.id}" aria-label="Xóa câu ${index + 1}">Xóa</button>` : '<span class="fixed-count">Vòng 2</span>'}
+        <button class="delete-btn" data-delete-question="${question.id}" data-delete-round="${round}" aria-label="Xóa câu ${index + 1} vòng ${round}">Xóa</button>
       </div>
       <input class="question-input" data-field="text" value="${escapeHtml(question.text)}" aria-label="Nội dung câu ${index + 1} vòng ${round}" />
       <div class="option-edit-grid">
@@ -136,13 +148,15 @@ function openSetup() {
   showScreen('setupScreen');
 }
 
-function addQuestion() {
-  const id = `r1-${Date.now()}`;
-  data.questions.push({ id, text: 'Câu hỏi mới', options: ['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D'], correct: 0 });
+function addQuestion(round) {
+  const collection = round === 2 ? data.round2Questions : data.questions;
+  const editorSelector = round === 2 ? '#round2QuestionsEditor' : '#questionsEditor';
+  const id = `r${round}-${Date.now()}`;
+  collection.push({ id, text: 'Câu hỏi mới', options: ['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D'], correct: 0 });
   saveData();
   renderSetup();
   requestAnimationFrame(() => {
-    const cards = $$('#questionsEditor .question-editor-card');
+    const cards = $$(`${editorSelector} .question-editor-card`);
     cards.at(-1)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     cards.at(-1)?.querySelector('.question-input')?.select();
   });
@@ -429,6 +443,12 @@ function updateRound2PlayerCount() {
 }
 
 function startRound2() {
+  if (!data.round2Questions.length) {
+    showToast('Hãy thêm ít nhất 1 câu hỏi vòng 2');
+    openSetup();
+    $(`[data-tab="questions"]`)?.click();
+    return;
+  }
   const names = updateRound2PlayerCount();
   if (names.length < 3) {
     showToast('Vòng 2 cần ít nhất 3 người chơi');
@@ -451,8 +471,9 @@ function startRound2() {
 
 function renderRound2Question() {
   const question = data.round2Questions[round2.questionIndex];
-  $('#round2ProgressText').textContent = `Câu ${round2.questionIndex + 1} / 3`;
-  $('#round2ProgressBar').style.width = `${((round2.questionIndex + 1) / 3) * 100}%`;
+  const total = data.round2Questions.length;
+  $('#round2ProgressText').textContent = `Câu ${round2.questionIndex + 1} / ${total}`;
+  $('#round2ProgressBar').style.width = `${((round2.questionIndex + 1) / total) * 100}%`;
   $('#round2QuestionNumber').textContent = `CÂU HỎI ${String(round2.questionIndex + 1).padStart(2, '0')}`;
   $('#round2AttemptBadge').textContent = `LƯỢT TRẢ LỜI ${round2.attempt + 1} / 3`;
   $('#round2GameQuestion').textContent = question.text;
@@ -597,11 +618,8 @@ document.addEventListener('click', event => {
   }
   const deleteButton = event.target.closest('[data-delete-question]');
   if (deleteButton) {
-    if (data.questions.length === 1) {
-      showToast('Cần giữ lại ít nhất 1 câu hỏi');
-      return;
-    }
-    data.questions = data.questions.filter(question => String(question.id) !== deleteButton.dataset.deleteQuestion);
+    const collectionName = deleteButton.dataset.deleteRound === '2' ? 'round2Questions' : 'questions';
+    data[collectionName] = data[collectionName].filter(question => String(question.id) !== deleteButton.dataset.deleteQuestion);
     saveData();
     renderSetup();
     return;
@@ -622,7 +640,8 @@ document.addEventListener('click', event => {
     'start-game': startGame,
     'open-setup': openSetup,
     'go-home': () => showScreen('homeScreen'),
-    'add-question': addQuestion,
+    'add-question-round1': () => addQuestion(1),
+    'add-question-round2': () => addQuestion(2),
     'spin': spinWheel,
     'result-action': resultAction,
     'show-rules': () => { $('#rulesDisplay').textContent = data.rules; $('#rulesDialog').showModal(); },

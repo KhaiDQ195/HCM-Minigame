@@ -56,6 +56,20 @@
   background: linear-gradient(90deg, transparent, var(--line), transparent);
 }
 
+.empty-question-state {
+  display: grid;
+  gap: .35rem;
+  padding: 1.35rem;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty-question-state strong {
+  color: var(--cream);
+}
+
 .fixed-count {
   color: var(--cyan);
   font-size: .78rem;
