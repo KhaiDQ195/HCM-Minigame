@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="Trò chơi đố vui theo đội với vòng quay ngẫu nhiên và bảng điểm trực tiếp." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2307111f'/%3E%3Ccircle cx='32' cy='34' r='21' fill='%23ffd84d'/%3E%3Cpath d='M32 13v21l15-14A21 21 0 0032 13z' fill='%23ff4f87'/%3E%3Ccircle cx='32' cy='34' r='5' fill='%2307111f'/%3E%3C/svg%3E" />
+  <title>Vòng Quay Thử Thách</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <section id="homeScreen" class="screen home-screen active" aria-labelledby="homeTitle">
+      <div class="home-noise"></div>
+      <div class="home-shell">
+        <header class="brand-row"><span class="brand-mark">VQ</span><span>Trò chơi trên lớp</span></header>
+        <main class="home-content">
+          <p class="eyebrow">10 câu hỏi · 5 đội chơi · 1 vòng quay</p>
+          <h1 id="homeTitle">VÒNG QUAY<br><span>THỬ THÁCH</span></h1>
+          <p class="home-description">Quay đội, chọn đáp án và theo dõi điểm số trực tiếp trên cùng một màn hình.</p>
+          <div class="home-actions">
+            <button class="btn btn-primary btn-xl" data-action="start-game"><span>Chơi ngay</span><span aria-hidden="true">→</span></button>
+            <button class="btn btn-ghost btn-xl" data-action="open-setup"><span>Chuẩn bị</span><span aria-hidden="true">⚙</span></button>
+          </div>
+        </main>
+        <footer class="home-footer"><span>Sẵn sàng cho tiết học?</span><span id="homeStats">10 câu hỏi · 5 nhóm</span></footer>
+      </div>
+    </section>
+
+    <section id="setupScreen" class="screen setup-screen" aria-labelledby="setupTitle">
+      <header class="topbar">
+        <button class="icon-btn" data-action="go-home" aria-label="Về trang chủ">←</button>
+        <div><p class="mini-label">TRƯỚC KHI BẮT ĐẦU</p><h2 id="setupTitle">Chuẩn bị trò chơi</h2></div>
+        <button class="btn btn-primary" data-action="start-game">Chơi ngay <span aria-hidden="true">→</span></button>
+      </header>
+      <main class="setup-layout">
+        <nav class="setup-nav" aria-label="Các mục chuẩn bị">
+          <button class="setup-tab active" data-tab="rules"><span class="tab-number">01</span><span>Luật chơi</span></button>
+          <button class="setup-tab" data-tab="questions"><span class="tab-number">02</span><span>Câu hỏi</span><strong id="questionCountBadge">10</strong></button>
+          <button class="setup-tab" data-tab="teams"><span class="tab-number">03</span><span>Tên nhóm</span><strong>5</strong></button>
+        </nav>
+        <div class="setup-content">
+          <section class="setup-panel active" data-panel="rules">
+            <div class="panel-heading"><div><p class="mini-label">NỘI DUNG HIỂN THỊ</p><h3>Luật chơi</h3></div><span class="autosave">● Tự động lưu</span></div>
+            <label class="field-label" for="rulesInput">Bạn có thể chỉnh sửa nội dung luật chơi</label>
+            <textarea id="rulesInput" class="large-textarea" rows="12"></textarea>
+            <p class="field-hint">Nội dung này có thể mở nhanh từ màn hình chơi.</p>
+          </section>
+          <section class="setup-panel" data-panel="questions">
+            <div class="panel-heading"><div><p class="mini-label">NGÂN HÀNG CÂU HỎI</p><h3>Câu hỏi</h3></div><button class="btn btn-primary" data-action="add-question">＋ Thêm câu hỏi</button></div>
+            <div id="questionsEditor" class="questions-editor"></div>
+          </section>
+          <section class="setup-panel" data-panel="teams">
+            <div class="panel-heading"><div><p class="mini-label">DANH SÁCH THAM GIA</p><h3>Tên nhóm</h3></div><span class="autosave">● Tự động lưu</span></div>
+            <p class="panel-intro">Nhóm 3 là nhóm thuyết trình nên không tham gia vòng quay.</p>
+            <div id="teamsEditor" class="teams-editor"></div>
+          </section>
+        </div>
+      </main>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen" aria-labelledby="gameQuestion">
+      <header class="game-topbar">
+        <button class="brand-button" data-action="confirm-exit" aria-label="Thoát về trang chủ"><span class="brand-mark small">VQ</span><span>Vòng Quay Thử Thách</span></button>
+        <div class="progress-wrap"><span id="progressText">Câu 1 / 10</span><div class="progress-track"><span id="progressBar"></span></div></div>
+        <button class="btn btn-compact" data-action="show-rules">Luật chơi</button>
+      </header>
+      <main class="game-layout">
+        <section class="play-column">
+          <div class="question-card">
+            <div class="question-meta"><span id="questionNumber">CÂU HỎI 01</span><span id="attemptBadge">LƯỢT 1 · +1 ĐIỂM</span></div>
+            <h2 id="gameQuestion">Câu hỏi sẽ xuất hiện ở đây</h2>
+          </div>
+          <div class="stage-card">
+            <div id="spinStage" class="spin-stage active">
+              <div class="wheel-wrap">
+                <div class="wheel-pointer" aria-hidden="true"></div>
+                <canvas id="wheelCanvas" width="520" height="520" aria-label="Vòng quay chọn đội"></canvas>
+                <div class="wheel-hub">QUAY</div>
+              </div>
+              <div class="spin-copy"><p id="spinPrompt">Sẵn sàng chọn đội trả lời</p><button id="spinButton" class="btn btn-primary btn-xl" data-action="spin">Quay vòng quay</button></div>
+            </div>
+            <div id="answerStage" class="answer-stage">
+              <div class="selected-team"><span>Đội đang trả lời</span><strong id="selectedTeamName">—</strong><small id="rewardText">Trả lời đúng: +1 điểm</small></div>
+              <div id="answerGrid" class="answer-grid"></div>
+              <p class="answer-hint">Người điều phối chọn đáp án mà đội vừa trả lời.</p>
+            </div>
+            <div id="resultStage" class="result-stage">
+              <div id="resultIcon" class="result-icon">✓</div>
+              <p id="resultKicker">CHÍNH XÁC</p>
+              <h3 id="resultTitle">Nhóm đã ghi điểm!</h3>
+              <p id="resultDetail"></p>
+              <button id="resultAction" class="btn btn-primary btn-xl" data-action="result-action">Câu tiếp theo →</button>
+            </div>
+          </div>
+        </section>
+        <aside class="score-column">
+          <div class="score-heading"><div><p class="mini-label">CẬP NHẬT TRỰC TIẾP</p><h3>Bảng điểm</h3></div><span class="live-pill">LIVE</span></div>
+          <div id="scoreboard" class="scoreboard"></div>
+          <div class="score-note"><span>Điểm đúng theo lượt</span><strong>+1 / +0,5 / +0,25</strong></div>
+        </aside>
+      </main>
+    </section>
+
+    <section id="finalScreen" class="screen final-screen" aria-labelledby="finalTitle">
+      <div class="confetti-field" aria-hidden="true"></div>
+      <main class="final-shell">
+        <p class="eyebrow">TRÒ CHƠI ĐÃ KẾT THÚC</p>
+        <h2 id="finalTitle">BẢNG ĐIỂM<br><span>CHUNG CUỘC</span></h2>
+        <div id="winnerCard" class="winner-card"></div>
+        <div id="finalRanking" class="final-ranking"></div>
+        <div class="final-actions"><button class="btn btn-primary btn-xl" data-action="restart">Chơi lại</button><button class="btn btn-ghost btn-xl" data-action="go-home">Về trang chủ</button></div>
+      </main>
+    </section>
+  </div>
+
+  <dialog id="rulesDialog" class="modal"><div class="modal-head"><div><p class="mini-label">TRƯỚC KHI TRẢ LỜI</p><h3>Luật chơi</h3></div><button class="icon-btn" data-action="close-rules" aria-label="Đóng">×</button></div><div id="rulesDisplay" class="rules-display"></div></dialog>
+  <dialog id="exitDialog" class="modal small-modal"><h3>Thoát trò chơi?</h3><p>Điểm của lượt chơi hiện tại sẽ bị mất.</p><div class="modal-actions"><button class="btn btn-ghost" data-action="cancel-exit">Ở lại</button><button class="btn btn-danger" data-action="exit-game">Thoát</button></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
