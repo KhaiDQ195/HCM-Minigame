@@ -4,22 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="description" content="Trò chơi đố vui theo đội với vòng quay ngẫu nhiên và bảng điểm trực tiếp." />
+  <meta name="description" content="Trò chơi đố vui hai vòng với vòng quay ngẫu nhiên, bảng điểm đội và vòng thi cá nhân." />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2307111f'/%3E%3Ccircle cx='32' cy='34' r='21' fill='%23ffd84d'/%3E%3Cpath d='M32 13v21l15-14A21 21 0 0032 13z' fill='%23ff4f87'/%3E%3Ccircle cx='32' cy='34' r='5' fill='%2307111f'/%3E%3C/svg%3E" />
   <title>Vòng Quay Thử Thách</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="round2.css" />
 </head>
 <body>
   <div id="app">
     <section id="homeScreen" class="screen home-screen active" aria-labelledby="homeTitle">
       <div class="home-noise"></div>
       <div class="home-shell">
-        <header class="brand-row"><span class="party-mark" aria-hidden="true">☭</span><span>Nhóm 3</span></header>
+        <header class="brand-row"><span class="party-mark"><img src="assets/party-emblem.png" alt="Biểu tượng Đảng" /></span><span>Nhóm 3</span></header>
         <main class="home-content">
-          <p class="eyebrow">10 câu hỏi · 5 đội chơi · 1 vòng quay</p>
+          <p class="eyebrow">2 vòng thi · Đồng đội & cá nhân</p>
           <h1 id="homeTitle">VÒNG QUAY<span>THỬ THÁCH</span></h1>
           <div class="home-actions">
             <button class="btn btn-primary btn-xl home-action" data-action="start-game"><span><strong>Chơi ngay</strong><small>Bắt đầu từ câu hỏi số 1</small></span><span class="action-icon" aria-hidden="true">→</span></button>
@@ -50,8 +51,12 @@
             <p class="field-hint">Nội dung này có thể mở nhanh từ màn hình chơi.</p>
           </section>
           <section class="setup-panel" data-panel="questions">
-            <div class="panel-heading"><div><p class="mini-label">NGÂN HÀNG CÂU HỎI</p><h3>Câu hỏi</h3></div><button class="btn btn-primary" data-action="add-question">＋ Thêm câu hỏi</button></div>
+            <div class="panel-heading"><div><p class="mini-label">NGÂN HÀNG CÂU HỎI</p><h3>Câu hỏi</h3></div><span class="autosave">● Tự động lưu</span></div>
+            <div class="question-section-title"><div><span class="round-tag">VÒNG 1</span><h4>Câu hỏi đồng đội</h4><p>Điểm được tính cho 5 nhóm chơi.</p></div><button class="btn btn-primary" data-action="add-question">＋ Thêm câu hỏi</button></div>
             <div id="questionsEditor" class="questions-editor"></div>
+            <div class="round-divider"></div>
+            <div class="question-section-title"><div><span class="round-tag accent">VÒNG 2</span><h4>3 câu hỏi cá nhân</h4><p>Được sử dụng sau khi vòng 1 kết thúc.</p></div><strong class="fixed-count">3 câu cố định</strong></div>
+            <div id="round2QuestionsEditor" class="questions-editor"></div>
           </section>
           <section class="setup-panel" data-panel="teams">
             <div class="panel-heading"><div><p class="mini-label">DANH SÁCH THAM GIA</p><h3>Tên nhóm</h3></div><span class="autosave">● Tự động lưu</span></div>
@@ -112,7 +117,87 @@
         <h2 id="finalTitle">BẢNG ĐIỂM<br><span>CHUNG CUỘC</span></h2>
         <div id="winnerCard" class="winner-card"></div>
         <div id="finalRanking" class="final-ranking"></div>
-        <div class="final-actions"><button class="btn btn-primary btn-xl" data-action="restart">Chơi lại</button><button class="btn btn-ghost btn-xl" data-action="go-home">Về trang chủ</button></div>
+        <div class="final-actions"><button id="round1Continue" class="btn btn-primary btn-xl" data-action="round2-intro">Tiếp tục →</button><button class="btn btn-ghost btn-xl" data-action="go-home">Về trang chủ</button></div>
+      </main>
+    </section>
+
+    <section id="round2SetupScreen" class="screen setup-screen round2-setup-screen" aria-labelledby="round2SetupTitle">
+      <header class="topbar">
+        <button class="icon-btn" data-action="go-home" aria-label="Về trang chủ">←</button>
+        <div><p class="mini-label">VÒNG 2 · CÁ NHÂN</p><h2 id="round2SetupTitle">Điền tên người chơi</h2></div>
+        <button class="btn btn-primary" data-action="start-round2">Bắt đầu vòng 2 <span aria-hidden="true">→</span></button>
+      </header>
+      <main class="round2-setup-layout">
+        <section class="round2-rules-card">
+          <span class="round-tag accent">VÒNG 2</span>
+          <h3>Chọn 3 người chiến thắng</h3>
+          <ol>
+            <li>Vòng quay chọn ngẫu nhiên một người trả lời.</li>
+            <li>Trả lời đúng: vào Danh sách chiến thắng.</li>
+            <li>Trả lời sai: bị loại khỏi vòng quay.</li>
+            <li>Mỗi câu hỏi có tối đa 3 người trả lời.</li>
+          </ol>
+          <p>Trò chơi kết thúc khi có 3 người trả lời đúng, hoặc chỉ còn đúng 3 ứng viên chưa bị loại.</p>
+        </section>
+        <section class="players-editor-card">
+          <div class="panel-heading"><div><p class="mini-label">VÒNG QUAY MỚI</p><h3>Danh sách người chơi</h3></div><strong id="round2PlayerCount" class="player-count">0 người</strong></div>
+          <label class="field-label" for="round2PlayersInput">Mỗi dòng là tên của một người chơi</label>
+          <textarea id="round2PlayersInput" class="players-textarea" rows="14" placeholder="Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C&#10;..."></textarea>
+          <div class="players-editor-footer"><span>Tối thiểu 3 người · Không giới hạn số lượng</span><button class="btn btn-ghost" data-action="clear-round2-players">Xóa danh sách</button></div>
+        </section>
+      </main>
+    </section>
+
+    <section id="round2GameScreen" class="screen game-screen round2-game-screen" aria-labelledby="round2GameQuestion">
+      <header class="game-topbar">
+        <button class="brand-button" data-action="confirm-exit" aria-label="Thoát về trang chủ"><span class="round-two-mark">2</span><span>Vòng 2 · Cá nhân</span></button>
+        <div class="progress-wrap"><span id="round2ProgressText">Câu 1 / 3</span><div class="progress-track"><span id="round2ProgressBar"></span></div></div>
+        <span id="round2CandidateCount" class="candidate-pill">0 ứng viên</span>
+      </header>
+      <main class="game-layout">
+        <section class="play-column">
+          <div class="question-card round2-question-card">
+            <div class="question-meta"><span id="round2QuestionNumber">CÂU HỎI 01</span><span id="round2AttemptBadge">LƯỢT TRẢ LỜI 1 / 3</span></div>
+            <h2 id="round2GameQuestion">Câu hỏi vòng 2 sẽ xuất hiện ở đây</h2>
+          </div>
+          <div class="stage-card">
+            <div id="round2SpinStage" class="spin-stage active">
+              <div class="wheel-wrap">
+                <div class="wheel-pointer" aria-hidden="true"></div>
+                <canvas id="round2WheelCanvas" width="520" height="520" aria-label="Vòng quay chọn người chơi"></canvas>
+                <div class="wheel-hub round2-hub">QUAY</div>
+              </div>
+              <div class="spin-copy"><p id="round2SpinPrompt">Sẵn sàng chọn người trả lời</p><button id="round2SpinButton" class="btn btn-primary btn-xl" data-action="round2-spin">Quay vòng quay</button></div>
+            </div>
+            <div id="round2AnswerStage" class="answer-stage">
+              <div class="selected-team selected-player"><span>Người đang trả lời</span><strong id="selectedPlayerName">—</strong><small>Một đáp án duy nhất</small></div>
+              <div id="round2AnswerGrid" class="answer-grid"></div>
+              <p class="answer-hint">Người điều phối chọn đáp án mà người chơi vừa trả lời.</p>
+            </div>
+            <div id="round2ResultStage" class="result-stage">
+              <div id="round2ResultIcon" class="result-icon">✓</div>
+              <p id="round2ResultKicker">CHÍNH XÁC</p>
+              <h3 id="round2ResultTitle">Đã vào danh sách chiến thắng!</h3>
+              <p id="round2ResultDetail"></p>
+              <button id="round2ResultAction" class="btn btn-primary btn-xl" data-action="round2-result-action">Tiếp tục →</button>
+            </div>
+          </div>
+        </section>
+        <aside class="score-column round2-sidebar">
+          <div class="score-heading"><div><p class="mini-label">TỐI ĐA 3 NGƯỜI</p><h3>Danh sách chiến thắng</h3></div><span class="winner-counter" id="winnerCounter">0 / 3</span></div>
+          <div id="round2WinnerList" class="round2-winner-list"></div>
+          <div class="remaining-section"><div class="remaining-heading"><span>Còn trên vòng quay</span><strong id="remainingCount">0</strong></div><div id="remainingPlayers" class="remaining-players"></div></div>
+        </aside>
+      </main>
+    </section>
+
+    <section id="round2FinalScreen" class="screen final-screen round2-final-screen" aria-labelledby="round2FinalTitle">
+      <div class="confetti-field" aria-hidden="true"></div>
+      <main class="final-shell">
+        <p class="eyebrow">VÒNG 2 ĐÃ KẾT THÚC</p>
+        <h2 id="round2FinalTitle">CHÚC MỪNG<br><span>3 NGƯỜI CHIẾN THẮNG</span></h2>
+        <div id="round2FinalWinners" class="round2-final-winners"></div>
+        <div class="final-actions"><button class="btn btn-primary btn-xl" data-action="restart">Chơi lại từ vòng 1</button><button class="btn btn-ghost btn-xl" data-action="go-home">Về trang chủ</button></div>
       </main>
     </section>
   </div>
