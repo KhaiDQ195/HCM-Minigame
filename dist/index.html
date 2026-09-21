@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260921-1" />
-  <link rel="stylesheet" href="round2.css?v=20260921-1" />
+  <link rel="stylesheet" href="styles.css?v=20260921-2" />
+  <link rel="stylesheet" href="round2.css?v=20260921-2" />
 </head>
 <body>
   <div id="app">
@@ -154,6 +154,7 @@
       <header class="game-topbar">
         <button class="brand-button" data-action="confirm-exit" aria-label="Thoát về trang chủ"><span class="round-two-mark">2</span><span>Vòng 2 · Cá nhân</span></button>
         <div class="progress-wrap"><span id="round2ProgressText">Câu 1 / 3</span><div class="progress-track"><span id="round2ProgressBar"></span></div></div>
+        <button class="btn btn-compact" data-action="show-round2-rules">Luật chơi</button>
         <span id="round2CandidateCount" class="candidate-pill">0 ứng viên</span>
       </header>
       <main class="game-layout">
@@ -204,9 +205,9 @@
     </section>
   </div>
 
-  <dialog id="rulesDialog" class="modal"><div class="modal-head"><div><p id="rulesKicker" class="mini-label">TRƯỚC KHI TRẢ LỜI</p><h3 id="rulesTitle">Luật chơi Vòng 1</h3></div><button class="icon-btn" data-action="close-rules" aria-label="Đóng">×</button></div><div id="rulesDisplay" class="rules-display"></div></dialog>
+  <dialog id="rulesDialog" class="modal"><div class="modal-head"><div><p id="rulesKicker" class="mini-label">THE FINAL THREE</p><h3 id="rulesTitle">Luật chơi</h3></div><button class="icon-btn" data-action="close-rules" aria-label="Đóng">×</button></div><div id="rulesDisplay" class="rules-display"></div></dialog>
   <dialog id="exitDialog" class="modal small-modal"><h3>Thoát trò chơi?</h3><p>Điểm của lượt chơi hiện tại sẽ bị mất.</p><div class="modal-actions"><button class="btn btn-ghost" data-action="cancel-exit">Ở lại</button><button class="btn btn-danger" data-action="exit-game">Thoát</button></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260921-1"></script>
+  <script src="app.js?v=20260921-2"></script>
 </body>
 </html>

@@ -663,9 +663,15 @@ document.addEventListener('click', event => {
     'spin': spinWheel,
     'result-action': resultAction,
     'show-rules': () => {
-      $('#rulesKicker').textContent = 'VÒNG 1 · ĐỒNG ĐỘI';
-      $('#rulesTitle').textContent = 'Luật chơi Vòng 1';
+      $('#rulesKicker').textContent = 'THE FINAL THREE';
+      $('#rulesTitle').textContent = 'Luật chơi';
       $('#rulesDisplay').textContent = data.round1Rules;
+      $('#rulesDialog').showModal();
+    },
+    'show-round2-rules': () => {
+      $('#rulesKicker').textContent = 'VÒNG 2 · CÁ NHÂN';
+      $('#rulesTitle').textContent = 'Luật chơi Vòng 2';
+      $('#rulesDisplay').textContent = data.round2Rules;
       $('#rulesDialog').showModal();
     },
     'close-rules': () => $('#rulesDialog').close(),
