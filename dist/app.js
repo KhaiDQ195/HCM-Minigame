@@ -4,12 +4,20 @@ const TEAM_COLORS = ['#ffd84d', '#ff4f87', '#56d6d2', '#4d83ff', '#b58cff'];
 const PLAYER_COLORS = ['#56d6d2', '#ffd84d', '#ff4f87', '#4d83ff', '#b58cff', '#ff9f43', '#4cd97b', '#ff6b6b', '#54a0ff', '#c8d63b', '#e66fc2', '#7ed6df'];
 const TEAM_IDS = [1, 2, 4, 5, 6];
 const REWARDS = [1, .5, .25];
+const ROUND1_TIME_LIMITS = [15, 10, 5];
 
-const defaultRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
+const legacyRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
 1. Trước mỗi câu hỏi, người điều phối quay vòng quay để chọn ngẫu nhiên một đội trả lời.
 2. Trả lời đúng ở lượt đầu: +1 điểm. Trả lời sai: -1 điểm và quyền trả lời chuyển sang đội khác.
 3. Đội trả lời đúng ở lượt thứ hai nhận +0,5 điểm; lượt thứ ba nhận +0,25 điểm.
 4. Sau tối đa 3 lượt, đáp án đúng được công bố và trò chơi chuyển sang câu tiếp theo.`;
+
+const defaultRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
+1. Trước mỗi câu hỏi, người điều phối quay vòng quay để chọn ngẫu nhiên một đội trả lời.
+2. Sau khi vòng quay dừng, đội có 15 giây ở lượt đầu, 10 giây ở lượt thứ hai và 5 giây ở lượt thứ ba để trả lời. Hết giờ mà chưa có câu trả lời sẽ được tính là trả lời sai.
+3. Trả lời đúng ở lượt đầu: +1 điểm. Trả lời sai: -1 điểm và quyền trả lời chuyển sang đội khác.
+4. Đội trả lời đúng ở lượt thứ hai nhận +0,5 điểm; lượt thứ ba nhận +0,25 điểm.
+5. Sau tối đa 3 lượt, đáp án đúng được công bố và trò chơi chuyển sang câu tiếp theo.`;
 
 const defaultRound2Rules = `VÒNG 2 · CÁ NHÂN
 1. Thành viên của nhóm chiến thắng vòng 1 được đưa vào vòng quay mới.
@@ -59,6 +67,10 @@ function splitLegacyRules(rules) {
   };
 }
 
+function migrateRound1Rules(rules) {
+  return rules.trim() === legacyRound1Rules.trim() ? defaultRound1Rules : rules;
+}
+
 function isLegacyExampleSet(questions, examples) {
   return Array.isArray(questions)
     && questions.length === examples.length
@@ -75,7 +87,7 @@ function loadData() {
       return {
         ...initialData(),
         ...saved,
-        round1Rules: typeof saved.round1Rules === 'string' ? saved.round1Rules : migratedRules.round1Rules,
+        round1Rules: migrateRound1Rules(typeof saved.round1Rules === 'string' ? saved.round1Rules : migratedRules.round1Rules),
         round2Rules: typeof saved.round2Rules === 'string' ? saved.round2Rules : migratedRules.round2Rules,
         questions: isLegacyExampleSet(saved.questions, legacyExampleQuestions) ? [] : (Array.isArray(saved.questions) ? saved.questions : []),
         round2Questions: isLegacyExampleSet(saved.round2Questions, legacyExampleRound2Questions) ? [] : (Array.isArray(saved.round2Questions) ? saved.round2Questions : []),
@@ -92,6 +104,7 @@ let round2 = null;
 let wheelRotation = 0;
 let round2WheelRotation = 0;
 let toastTimer;
+let answerTimerInterval;
 let round1SummaryAcknowledged = false;
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -228,10 +241,12 @@ function renderQuestion() {
 
 function updateAttemptBadge() {
   const reward = REWARDS[game.attempt] ?? 0;
-  $('#attemptBadge').textContent = `LƯỢT ${game.attempt + 1} · +${formatScore(reward)} ĐIỂM`;
+  const timeLimit = ROUND1_TIME_LIMITS[game.attempt] ?? 5;
+  $('#attemptBadge').textContent = `LƯỢT ${game.attempt + 1} · +${formatScore(reward)} ĐIỂM · ${timeLimit} GIÂY`;
 }
 
 function showStage(name) {
+  if (name !== 'answer') stopAnswerTimer();
   $('#spinStage').classList.toggle('active', name === 'spin');
   $('#answerStage').classList.toggle('active', name === 'answer');
   $('#resultStage').classList.toggle('active', name === 'result');
@@ -329,11 +344,44 @@ function showAnswers() {
   $('#rewardText').textContent = `Trả lời đúng: +${formatScore(reward)} điểm`;
   $('#answerGrid').innerHTML = question.options.map((option, index) => `<button class="answer-btn" data-answer="${index}"><span class="answer-letter">${String.fromCharCode(65 + index)}</span>${escapeHtml(option)}</button>`).join('');
   showStage('answer');
+  startAnswerTimer();
+}
+
+function stopAnswerTimer() {
+  clearInterval(answerTimerInterval);
+  answerTimerInterval = null;
+}
+
+function updateAnswerTimer(seconds) {
+  const timer = $('#answerTimer');
+  $('#answerTimerValue').textContent = seconds;
+  timer.classList.toggle('urgent', seconds <= 5);
+  timer.setAttribute('aria-label', `Còn ${seconds} giây để trả lời`);
+}
+
+function startAnswerTimer() {
+  stopAnswerTimer();
+  const timeLimit = ROUND1_TIME_LIMITS[game.attempt] ?? 5;
+  const deadline = Date.now() + timeLimit * 1000;
+  updateAnswerTimer(timeLimit);
+  answerTimerInterval = setInterval(() => {
+    const seconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    updateAnswerTimer(seconds);
+    if (seconds === 0) handleAnswerTimeout();
+  }, 200);
+}
+
+function handleAnswerTimeout() {
+  if (!game || game.answered || !$('#answerStage').classList.contains('active')) return;
+  game.answered = true;
+  stopAnswerTimer();
+  applyWrongAnswer(true);
 }
 
 function chooseAnswer(index) {
   if (game.answered) return;
   game.answered = true;
+  stopAnswerTimer();
   const question = data.questions[game.index];
   const team = game.selected;
   const correct = index === question.correct;
@@ -342,13 +390,21 @@ function chooseAnswer(index) {
     game.scores[team.id] += reward;
     renderScoreboard();
     showResult(true, `${team.name} nhận +${formatScore(reward)} điểm.`, game.index === data.questions.length - 1 ? 'Xem kết quả →' : 'Câu tiếp theo →');
-  } else {
-    game.scores[team.id] -= 1;
-    game.tried.push(team.id);
-    renderScoreboard();
-    const noMore = game.attempt >= 2 || availableTeams().length === 0;
-    showResult(false, noMore ? `Đáp án đúng là ${String.fromCharCode(65 + question.correct)}. ${question.options[question.correct]}` : `${team.name} bị trừ 1 điểm. Quyền trả lời sẽ chuyển sang đội khác.`, noMore ? (game.index === data.questions.length - 1 ? 'Xem kết quả →' : 'Câu tiếp theo →') : 'Quay đội tiếp theo →', noMore);
-  }
+  } else applyWrongAnswer(false);
+}
+
+function applyWrongAnswer(timedOut) {
+  const question = data.questions[game.index];
+  const team = game.selected;
+  game.scores[team.id] -= 1;
+  game.tried.push(team.id);
+  renderScoreboard();
+  const noMore = game.attempt >= 2 || availableTeams().length === 0;
+  const reason = timedOut ? `${team.name} đã hết thời gian và bị trừ 1 điểm.` : `${team.name} bị trừ 1 điểm.`;
+  const detail = noMore
+    ? `${reason} Đáp án đúng là ${String.fromCharCode(65 + question.correct)}. ${question.options[question.correct]}`
+    : `${reason} Quyền trả lời sẽ chuyển sang đội khác.`;
+  showResult(false, detail, noMore ? (game.index === data.questions.length - 1 ? 'Xem kết quả →' : 'Câu tiếp theo →') : 'Quay đội tiếp theo →', noMore);
 }
 
 function showResult(correct, detail, buttonText, endQuestion = false) {
@@ -677,7 +733,7 @@ document.addEventListener('click', event => {
     'close-rules': () => $('#rulesDialog').close(),
     'confirm-exit': () => $('#exitDialog').showModal(),
     'cancel-exit': () => $('#exitDialog').close(),
-    'exit-game': () => { $('#exitDialog').close(); game = null; round2 = null; showScreen('homeScreen'); },
+    'exit-game': () => { $('#exitDialog').close(); stopAnswerTimer(); game = null; round2 = null; showScreen('homeScreen'); },
     'restart': startGame,
     'round2-intro': showRound2Intro,
     'open-round2-setup': openRound2Setup,

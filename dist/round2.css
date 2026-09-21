@@ -80,6 +80,37 @@
   color: var(--cream);
 }
 
+.answer-timer {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.selected-team .answer-timer span,
+.selected-team .answer-timer small {
+  color: var(--muted);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.selected-team .answer-timer strong {
+  margin: .15rem 0;
+  color: var(--yellow);
+  font-size: 2.6rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.selected-team .answer-timer.urgent strong {
+  color: var(--pink);
+  animation: timer-pulse .7s ease-in-out infinite alternate;
+}
+
+@keyframes timer-pulse {
+  to { transform: scale(1.12); }
+}
+
 .fixed-count {
   color: var(--cyan);
   font-size: .78rem;
