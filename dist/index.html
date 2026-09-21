@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260920-2" />
-  <link rel="stylesheet" href="round2.css?v=20260920-2" />
+  <link rel="stylesheet" href="styles.css?v=20260921-1" />
+  <link rel="stylesheet" href="round2.css?v=20260921-1" />
 </head>
 <body>
   <div id="app">
@@ -45,9 +45,18 @@
         <div class="setup-content">
           <section class="setup-panel active" data-panel="rules">
             <div class="panel-heading"><div><p class="mini-label">NỘI DUNG HIỂN THỊ</p><h3>Luật chơi</h3></div><span class="autosave">● Tự động lưu</span></div>
-            <label class="field-label" for="rulesInput">Bạn có thể chỉnh sửa nội dung luật chơi</label>
-            <textarea id="rulesInput" class="large-textarea" rows="12"></textarea>
-            <p class="field-hint">Nội dung này có thể mở nhanh từ màn hình chơi.</p>
+            <div class="rules-editor-section">
+              <span class="round-tag">VÒNG 1</span>
+              <label class="field-label" for="round1RulesInput">Luật chơi đồng đội</label>
+              <textarea id="round1RulesInput" class="large-textarea" rows="8"></textarea>
+              <p class="field-hint">Chỉ nội dung này xuất hiện khi đang chơi Vòng 1.</p>
+            </div>
+            <div class="rules-editor-section">
+              <span class="round-tag accent">VÒNG 2</span>
+              <label class="field-label" for="round2RulesInput">Luật chơi cá nhân</label>
+              <textarea id="round2RulesInput" class="large-textarea" rows="8"></textarea>
+              <p class="field-hint">Nội dung này được giữ kín và chỉ công bố sau khi Vòng 1 kết thúc.</p>
+            </div>
           </section>
           <section class="setup-panel" data-panel="questions">
             <div class="panel-heading"><div><p class="mini-label">NGÂN HÀNG CÂU HỎI</p><h3>Câu hỏi</h3></div><span class="autosave">● Tự động lưu</span></div>
@@ -129,14 +138,8 @@
       <main class="round2-setup-layout">
         <section class="round2-rules-card">
           <span class="round-tag accent">VÒNG 2</span>
-          <h3>Chọn 3 người chiến thắng</h3>
-          <ol>
-            <li>Vòng quay chọn ngẫu nhiên một người trả lời.</li>
-            <li>Trả lời đúng: vào Danh sách chiến thắng.</li>
-            <li>Trả lời sai: bị loại khỏi vòng quay.</li>
-            <li>Mỗi câu hỏi có tối đa 3 người trả lời.</li>
-          </ol>
-          <p>Trò chơi kết thúc khi có 3 người trả lời đúng, hoặc chỉ còn đúng 3 ứng viên chưa bị loại.</p>
+          <h3>Luật chơi Vòng 2</h3>
+          <div id="round2RulesDisplay" class="round2-rules-display"></div>
         </section>
         <section class="players-editor-card">
           <div class="panel-heading"><div><p class="mini-label">VÒNG QUAY MỚI</p><h3>Danh sách người chơi</h3></div><strong id="round2PlayerCount" class="player-count">0 người</strong></div>
@@ -201,9 +204,9 @@
     </section>
   </div>
 
-  <dialog id="rulesDialog" class="modal"><div class="modal-head"><div><p class="mini-label">TRƯỚC KHI TRẢ LỜI</p><h3>Luật chơi</h3></div><button class="icon-btn" data-action="close-rules" aria-label="Đóng">×</button></div><div id="rulesDisplay" class="rules-display"></div></dialog>
+  <dialog id="rulesDialog" class="modal"><div class="modal-head"><div><p id="rulesKicker" class="mini-label">TRƯỚC KHI TRẢ LỜI</p><h3 id="rulesTitle">Luật chơi Vòng 1</h3></div><button class="icon-btn" data-action="close-rules" aria-label="Đóng">×</button></div><div id="rulesDisplay" class="rules-display"></div></dialog>
   <dialog id="exitDialog" class="modal small-modal"><h3>Thoát trò chơi?</h3><p>Điểm của lượt chơi hiện tại sẽ bị mất.</p><div class="modal-actions"><button class="btn btn-ghost" data-action="cancel-exit">Ở lại</button><button class="btn btn-danger" data-action="exit-game">Thoát</button></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260920-2"></script>
+  <script src="app.js?v=20260921-1"></script>
 </body>
 </html>

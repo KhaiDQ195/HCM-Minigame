@@ -5,13 +5,13 @@ const PLAYER_COLORS = ['#56d6d2', '#ffd84d', '#ff4f87', '#4d83ff', '#b58cff', '#
 const TEAM_IDS = [1, 2, 4, 5, 6];
 const REWARDS = [1, .5, .25];
 
-const defaultRules = `VÒNG 1 · ĐỒNG ĐỘI
+const defaultRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
 1. Trước mỗi câu hỏi, người điều phối quay vòng quay để chọn ngẫu nhiên một đội trả lời.
 2. Trả lời đúng ở lượt đầu: +1 điểm. Trả lời sai: -1 điểm và quyền trả lời chuyển sang đội khác.
 3. Đội trả lời đúng ở lượt thứ hai nhận +0,5 điểm; lượt thứ ba nhận +0,25 điểm.
-4. Sau tối đa 3 lượt, đáp án đúng được công bố và trò chơi chuyển sang câu tiếp theo.
+4. Sau tối đa 3 lượt, đáp án đúng được công bố và trò chơi chuyển sang câu tiếp theo.`;
 
-VÒNG 2 · CÁ NHÂN
+const defaultRound2Rules = `VÒNG 2 · CÁ NHÂN
 1. Thành viên của nhóm chiến thắng vòng 1 được đưa vào vòng quay mới.
 2. Trả lời đúng: vào Danh sách chiến thắng. Trả lời sai: bị loại khỏi vòng quay.
 3. Mỗi câu hỏi có tối đa 3 người trả lời.
@@ -38,11 +38,24 @@ const legacyExampleRound2Questions = [
 
 function initialData() {
   return {
-    rules: defaultRules,
+    round1Rules: defaultRound1Rules,
+    round2Rules: defaultRound2Rules,
     teams: TEAM_IDS.map((id, i) => ({ id, name: `Nhóm ${id}`, color: TEAM_COLORS[i] })),
     questions: [],
     round2Questions: [],
     round2Players: []
+  };
+}
+
+function splitLegacyRules(rules) {
+  if (typeof rules !== 'string' || !rules.trim()) {
+    return { round1Rules: defaultRound1Rules, round2Rules: defaultRound2Rules };
+  }
+  const round2Start = rules.search(/(^|\n)\s*VÒNG 2\b/i);
+  if (round2Start < 0) return { round1Rules: rules.trim(), round2Rules: defaultRound2Rules };
+  return {
+    round1Rules: rules.slice(0, round2Start).trim() || defaultRound1Rules,
+    round2Rules: rules.slice(round2Start).trim() || defaultRound2Rules
   };
 }
 
@@ -58,9 +71,12 @@ function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY));
     if (saved?.teams?.length) {
+      const migratedRules = splitLegacyRules(saved.rules);
       return {
         ...initialData(),
         ...saved,
+        round1Rules: typeof saved.round1Rules === 'string' ? saved.round1Rules : migratedRules.round1Rules,
+        round2Rules: typeof saved.round2Rules === 'string' ? saved.round2Rules : migratedRules.round2Rules,
         questions: isLegacyExampleSet(saved.questions, legacyExampleQuestions) ? [] : (Array.isArray(saved.questions) ? saved.questions : []),
         round2Questions: isLegacyExampleSet(saved.round2Questions, legacyExampleRound2Questions) ? [] : (Array.isArray(saved.round2Questions) ? saved.round2Questions : []),
         round2Players: Array.isArray(saved.round2Players) ? saved.round2Players : []
@@ -132,7 +148,8 @@ function renderQuestionEditors(questions, round) {
 }
 
 function renderSetup() {
-  $('#rulesInput').value = data.rules;
+  $('#round1RulesInput').value = data.round1Rules;
+  $('#round2RulesInput').value = data.round2Rules;
   $('#questionsEditor').innerHTML = renderQuestionEditors(data.questions, 1);
   $('#round2QuestionsEditor').innerHTML = renderQuestionEditors(data.round2Questions, 2);
   $('#teamsEditor').innerHTML = data.teams.map(team => `
@@ -432,6 +449,7 @@ function uniqueNames(value) {
 
 function openRound2Setup() {
   $('#round2PlayersInput').value = data.round2Players.join('\n');
+  $('#round2RulesDisplay').textContent = data.round2Rules;
   updateRound2PlayerCount();
   showScreen('round2SetupScreen');
 }
@@ -644,7 +662,12 @@ document.addEventListener('click', event => {
     'add-question-round2': () => addQuestion(2),
     'spin': spinWheel,
     'result-action': resultAction,
-    'show-rules': () => { $('#rulesDisplay').textContent = data.rules; $('#rulesDialog').showModal(); },
+    'show-rules': () => {
+      $('#rulesKicker').textContent = 'VÒNG 1 · ĐỒNG ĐỘI';
+      $('#rulesTitle').textContent = 'Luật chơi Vòng 1';
+      $('#rulesDisplay').textContent = data.round1Rules;
+      $('#rulesDialog').showModal();
+    },
     'close-rules': () => $('#rulesDialog').close(),
     'confirm-exit': () => $('#exitDialog').showModal(),
     'cancel-exit': () => $('#exitDialog').close(),
@@ -665,8 +688,12 @@ $('#finalScreen').addEventListener('click', event => {
 });
 
 document.addEventListener('input', event => {
-  if (event.target.id === 'rulesInput') {
-    data.rules = event.target.value;
+  if (event.target.id === 'round1RulesInput') {
+    data.round1Rules = event.target.value;
+    saveData();
+  }
+  if (event.target.id === 'round2RulesInput') {
+    data.round2Rules = event.target.value;
     saveData();
   }
   if (event.target.matches('.team-input')) {

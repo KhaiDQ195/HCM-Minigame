@@ -56,6 +56,16 @@
   background: linear-gradient(90deg, transparent, var(--line), transparent);
 }
 
+.rules-editor-section + .rules-editor-section {
+  margin-top: 2.25rem;
+  padding-top: 2.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.rules-editor-section .field-label {
+  margin-top: .8rem;
+}
+
 .empty-question-state {
   display: grid;
   gap: .35rem;
@@ -108,6 +118,12 @@
   margin: .8rem 0 1.3rem;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
   line-height: 1.15;
+}
+
+.round2-rules-display {
+  white-space: pre-wrap;
+  color: #d2dbe5;
+  line-height: 1.75;
 }
 
 .round2-rules-card ol {
