@@ -12,12 +12,20 @@ const legacyRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
 3. Đội trả lời đúng ở lượt thứ hai nhận +0,5 điểm; lượt thứ ba nhận +0,25 điểm.
 4. Sau tối đa 3 lượt, đáp án đúng được công bố và trò chơi chuyển sang câu tiếp theo.`;
 
-const defaultRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
+const timedRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
 1. Trước mỗi câu hỏi, người điều phối quay vòng quay để chọn ngẫu nhiên một đội trả lời.
 2. Sau khi vòng quay dừng, đội có 15 giây ở lượt đầu, 10 giây ở lượt thứ hai và 5 giây ở lượt thứ ba để trả lời. Hết giờ mà chưa có câu trả lời sẽ được tính là trả lời sai.
 3. Trả lời đúng ở lượt đầu: +1 điểm. Trả lời sai: -1 điểm và quyền trả lời chuyển sang đội khác.
 4. Đội trả lời đúng ở lượt thứ hai nhận +0,5 điểm; lượt thứ ba nhận +0,25 điểm.
 5. Sau tối đa 3 lượt, đáp án đúng được công bố và trò chơi chuyển sang câu tiếp theo.`;
+
+const defaultRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
+1. Trước mỗi câu hỏi, người điều phối quay vòng quay để chọn ngẫu nhiên một đội trả lời.
+2. Sau khi vòng quay dừng, đội có 15 giây ở lượt đầu, 10 giây ở lượt thứ hai và 5 giây ở lượt thứ ba để trả lời. Hết giờ mà chưa có câu trả lời sẽ được tính là trả lời sai.
+3. Trả lời đúng ở lượt đầu: +1 điểm. Trả lời sai: -1 điểm và quyền trả lời chuyển sang đội khác.
+4. Đội trả lời đúng ở lượt thứ hai nhận +0,5 điểm; lượt thứ ba nhận +0,25 điểm.
+5. Sau tối đa 3 lượt, đáp án đúng được công bố và trò chơi chuyển sang câu tiếp theo.
+6. Nếu có từ 2 đội trở lên đồng hạng nhất sau khi kết thúc các câu hỏi Vòng 1, các đội đó bước vào câu hỏi phân định. Đội trả lời đúng giành chiến thắng; đội trả lời sai hoặc hết giờ bị loại khỏi lượt phân định và vòng quay tiếp tục giữa các đội còn lại.`;
 
 const defaultRound2Rules = `VÒNG 2 · CÁ NHÂN
 1. Thành viên của nhóm chiến thắng vòng 1 được đưa vào vòng quay mới.
@@ -50,6 +58,7 @@ function initialData() {
     round2Rules: defaultRound2Rules,
     teams: TEAM_IDS.map((id, i) => ({ id, name: `Nhóm ${id}`, color: TEAM_COLORS[i] })),
     questions: [],
+    tieBreakerQuestion: null,
     round2Questions: [],
     round2Players: []
   };
@@ -68,7 +77,8 @@ function splitLegacyRules(rules) {
 }
 
 function migrateRound1Rules(rules) {
-  return rules.trim() === legacyRound1Rules.trim() ? defaultRound1Rules : rules;
+  const normalized = rules.trim();
+  return normalized === legacyRound1Rules.trim() || normalized === timedRound1Rules.trim() ? defaultRound1Rules : rules;
 }
 
 function isLegacyExampleSet(questions, examples) {
@@ -146,10 +156,10 @@ function renderQuestionEditors(questions, round) {
   return questions.map((question, index) => `
     <article class="question-editor-card" data-qid="${question.id}" data-round="${round}">
       <div class="question-editor-head">
-        <strong>Câu ${String(index + 1).padStart(2, '0')}</strong>
-        <button class="delete-btn" data-delete-question="${question.id}" data-delete-round="${round}" aria-label="Xóa câu ${index + 1} vòng ${round}">Xóa</button>
+        <strong>${round === 'tie' ? 'Câu phân định' : `Câu ${String(index + 1).padStart(2, '0')}`}</strong>
+        <button class="delete-btn" data-delete-question="${question.id}" data-delete-round="${round}" aria-label="Xóa ${round === 'tie' ? 'câu phân định' : `câu ${index + 1} vòng ${round}`}">Xóa</button>
       </div>
-      <input class="question-input" data-field="text" value="${escapeHtml(question.text)}" aria-label="Nội dung câu ${index + 1} vòng ${round}" />
+      <input class="question-input" data-field="text" value="${escapeHtml(question.text)}" aria-label="${round === 'tie' ? 'Nội dung câu phân định' : `Nội dung câu ${index + 1} vòng ${round}`}" />
       <div class="option-edit-grid">
         ${question.options.map((option, optionIndex) => `
           <label class="option-row">
@@ -164,6 +174,10 @@ function renderSetup() {
   $('#round1RulesInput').value = data.round1Rules;
   $('#round2RulesInput').value = data.round2Rules;
   $('#questionsEditor').innerHTML = renderQuestionEditors(data.questions, 1);
+  $('#tieBreakerQuestionEditor').innerHTML = data.tieBreakerQuestion
+    ? renderQuestionEditors([data.tieBreakerQuestion], 'tie')
+    : '<div class="empty-question-state"><strong>Chưa có câu hỏi phân định</strong><span>Nhấn “Thêm câu hỏi” để chuẩn bị cho trường hợp đồng hạng nhất.</span></div>';
+  $('#tieBreakerAddButton').hidden = Boolean(data.tieBreakerQuestion);
   $('#round2QuestionsEditor').innerHTML = renderQuestionEditors(data.round2Questions, 2);
   $('#teamsEditor').innerHTML = data.teams.map(team => `
     <label class="team-row">
@@ -179,6 +193,13 @@ function openSetup() {
 }
 
 function addQuestion(round) {
+  if (round === 'tie') {
+    data.tieBreakerQuestion = { id: `tie-${Date.now()}`, text: 'Câu hỏi phân định', options: ['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D'], correct: 0 };
+    saveData();
+    renderSetup();
+    requestAnimationFrame(() => $('#tieBreakerQuestionEditor .question-input')?.select());
+    return;
+  }
   const collection = round === 2 ? data.round2Questions : data.questions;
   const editorSelector = round === 2 ? '#round2QuestionsEditor' : '#questionsEditor';
   const id = `r${round}-${Date.now()}`;
@@ -195,7 +216,9 @@ function addQuestion(round) {
 function updateQuestionFromInput(input) {
   const card = input.closest('[data-qid]');
   if (!card) return;
-  const collection = card.dataset.round === '2' ? data.round2Questions : data.questions;
+  const collection = card.dataset.round === '2'
+    ? data.round2Questions
+    : card.dataset.round === 'tie' ? [data.tieBreakerQuestion] : data.questions;
   const question = collection.find(item => String(item.id) === card.dataset.qid);
   if (!question) return;
   if (input.dataset.field === 'text') question.text = input.value;
@@ -210,12 +233,18 @@ function startGame() {
     openSetup();
     return;
   }
+  if (!data.tieBreakerQuestion) {
+    showToast('Hãy thêm câu hỏi phân định trước khi chơi');
+    openSetup();
+    $('[data-tab="questions"]')?.click();
+    return;
+  }
   data.teams.forEach((team, index) => {
     if (!team.name.trim()) team.name = `Nhóm ${team.id}`;
     team.color = TEAM_COLORS[index % TEAM_COLORS.length];
   });
   saveData();
-  game = { index: 0, scores: Object.fromEntries(data.teams.map(team => [team.id, 0])), attempt: 0, tried: [], selected: null, spinning: false, answered: false };
+  game = { index: 0, scores: Object.fromEntries(data.teams.map(team => [team.id, 0])), attempt: 0, tried: [], selected: null, spinning: false, answered: false, tieBreaker: false, tieTeamIds: [], tieWinnerId: null };
   round2 = null;
   round1SummaryAcknowledged = false;
   showScreen('gameScreen');
@@ -224,12 +253,16 @@ function startGame() {
   drawWheel();
 }
 
+function currentRound1Question() {
+  return game.tieBreaker ? data.tieBreakerQuestion : data.questions[game.index];
+}
+
 function renderQuestion() {
-  const question = data.questions[game.index];
+  const question = currentRound1Question();
   const total = data.questions.length;
-  $('#progressText').textContent = `Câu ${game.index + 1} / ${total}`;
-  $('#progressBar').style.width = `${((game.index + 1) / total) * 100}%`;
-  $('#questionNumber').textContent = `CÂU HỎI ${String(game.index + 1).padStart(2, '0')}`;
+  $('#progressText').textContent = game.tieBreaker ? 'Câu phân định' : `Câu ${game.index + 1} / ${total}`;
+  $('#progressBar').style.width = game.tieBreaker ? '100%' : `${((game.index + 1) / total) * 100}%`;
+  $('#questionNumber').textContent = game.tieBreaker ? 'CÂU HỎI PHÂN ĐỊNH' : `CÂU HỎI ${String(game.index + 1).padStart(2, '0')}`;
   $('#gameQuestion').textContent = question.text;
   updateAttemptBadge();
   showStage('spin');
@@ -240,9 +273,11 @@ function renderQuestion() {
 }
 
 function updateAttemptBadge() {
-  const reward = REWARDS[game.attempt] ?? 0;
+  const reward = game.tieBreaker ? 1 : (REWARDS[game.attempt] ?? 0);
   const timeLimit = ROUND1_TIME_LIMITS[game.attempt] ?? 5;
-  $('#attemptBadge').textContent = `LƯỢT ${game.attempt + 1} · +${formatScore(reward)} ĐIỂM · ${timeLimit} GIÂY`;
+  $('#attemptBadge').textContent = game.tieBreaker
+    ? `PHÂN ĐỊNH · ${timeLimit} GIÂY`
+    : `LƯỢT ${game.attempt + 1} · +${formatScore(reward)} ĐIỂM · ${timeLimit} GIÂY`;
 }
 
 function showStage(name) {
@@ -253,7 +288,7 @@ function showStage(name) {
 }
 
 function availableTeams() {
-  return data.teams.filter(team => !game.tried.includes(team.id));
+  return data.teams.filter(team => (!game.tieBreaker || game.tieTeamIds.includes(team.id)) && !game.tried.includes(team.id));
 }
 
 function drawWheelCanvas(canvas, items, rotation) {
@@ -295,7 +330,8 @@ function drawWheelCanvas(canvas, items, rotation) {
 }
 
 function drawWheel(rotation = wheelRotation) {
-  const teams = availableTeams().length ? availableTeams() : data.teams;
+  const available = availableTeams();
+  const teams = available.length ? available : (game.tieBreaker ? [] : data.teams);
   drawWheelCanvas($('#wheelCanvas'), teams, rotation);
   return teams;
 }
@@ -337,11 +373,11 @@ function spinWheel() {
 }
 
 function showAnswers() {
-  const question = data.questions[game.index];
-  const reward = REWARDS[game.attempt];
+  const question = currentRound1Question();
+  const reward = game.tieBreaker ? 1 : REWARDS[game.attempt];
   $('#selectedTeamName').textContent = game.selected.name;
   $('#selectedTeamName').style.color = game.selected.color;
-  $('#rewardText').textContent = `Trả lời đúng: +${formatScore(reward)} điểm`;
+  $('#rewardText').textContent = game.tieBreaker ? 'Trả lời đúng: giành chiến thắng' : `Trả lời đúng: +${formatScore(reward)} điểm`;
   $('#answerGrid').innerHTML = question.options.map((option, index) => `<button class="answer-btn" data-answer="${index}"><span class="answer-letter">${String.fromCharCode(65 + index)}</span>${escapeHtml(option)}</button>`).join('');
   showStage('answer');
   startAnswerTimer();
@@ -382,23 +418,35 @@ function chooseAnswer(index) {
   if (game.answered) return;
   game.answered = true;
   stopAnswerTimer();
-  const question = data.questions[game.index];
+  const question = currentRound1Question();
   const team = game.selected;
   const correct = index === question.correct;
   if (correct) {
-    const reward = REWARDS[game.attempt];
+    const reward = game.tieBreaker ? 1 : REWARDS[game.attempt];
     game.scores[team.id] += reward;
+    if (game.tieBreaker) game.tieWinnerId = team.id;
     renderScoreboard();
-    showResult(true, `${team.name} nhận +${formatScore(reward)} điểm.`, game.index === data.questions.length - 1 ? 'Xem kết quả →' : 'Câu tiếp theo →');
+    showResult(true, game.tieBreaker ? `${team.name} trả lời đúng và giành chiến thắng Vòng 1!` : `${team.name} nhận +${formatScore(reward)} điểm.`, game.tieBreaker || game.index === data.questions.length - 1 ? 'Xem kết quả →' : 'Câu tiếp theo →');
   } else applyWrongAnswer(false);
 }
 
 function applyWrongAnswer(timedOut) {
-  const question = data.questions[game.index];
+  const question = currentRound1Question();
   const team = game.selected;
   game.scores[team.id] -= 1;
   game.tried.push(team.id);
   renderScoreboard();
+  if (game.tieBreaker) {
+    const remaining = availableTeams();
+    const reason = timedOut ? `${team.name} đã hết thời gian và bị loại khỏi lượt phân định.` : `${team.name} trả lời sai và bị loại khỏi lượt phân định.`;
+    if (remaining.length === 1) {
+      game.tieWinnerId = remaining[0].id;
+      showResult(false, `${reason} ${remaining[0].name} là đội còn lại và giành chiến thắng Vòng 1!`, 'Xem kết quả →', true);
+    } else {
+      showResult(false, `${reason} Vòng quay sẽ tiếp tục giữa ${remaining.length} đội còn lại.`, 'Quay đội tiếp theo →', false);
+    }
+    return;
+  }
   const noMore = game.attempt >= 2 || availableTeams().length === 0;
   const reason = timedOut ? `${team.name} đã hết thời gian và bị trừ 1 điểm.` : `${team.name} bị trừ 1 điểm.`;
   const detail = noMore
@@ -412,7 +460,9 @@ function showResult(correct, detail, buttonText, endQuestion = false) {
   stage.classList.toggle('wrong', !correct);
   $('#resultIcon').textContent = correct ? '✓' : '×';
   $('#resultKicker').textContent = correct ? 'CHÍNH XÁC' : 'CHƯA CHÍNH XÁC';
-  $('#resultTitle').textContent = correct ? 'Đội đã ghi điểm!' : endQuestion ? 'Hết lượt trả lời' : 'Chuyển quyền trả lời';
+  $('#resultTitle').textContent = correct
+    ? (game.tieBreaker ? 'Đã phân định đội chiến thắng!' : 'Đội đã ghi điểm!')
+    : endQuestion ? (game.tieBreaker ? 'Đã có đội chiến thắng!' : 'Hết lượt trả lời') : 'Chuyển quyền trả lời';
   $('#resultDetail').textContent = detail;
   $('#resultAction').textContent = buttonText;
   $('#resultAction').dataset.next = correct || endQuestion ? 'question' : 'spin';
@@ -434,8 +484,15 @@ function resultAction() {
 }
 
 function nextQuestion() {
-  if (game.index >= data.questions.length - 1) {
+  if (game.tieBreaker) {
     showRound1Final();
+    return;
+  }
+  if (game.index >= data.questions.length - 1) {
+    const ranked = rankedTeams();
+    const tiedLeaders = ranked.filter(team => team.score === ranked[0].score);
+    if (tiedLeaders.length > 1) startTieBreaker(tiedLeaders);
+    else showRound1Final();
     return;
   }
   game.index += 1;
@@ -443,6 +500,18 @@ function nextQuestion() {
   game.tried = [];
   game.selected = null;
   game.answered = false;
+  renderQuestion();
+}
+
+function startTieBreaker(teams) {
+  game.tieBreaker = true;
+  game.tieTeamIds = teams.map(team => team.id);
+  game.tieWinnerId = null;
+  game.attempt = 0;
+  game.tried = [];
+  game.selected = null;
+  game.answered = false;
+  showToast(`${teams.length} đội đồng hạng nhất · Bắt đầu câu phân định`);
   renderQuestion();
 }
 
@@ -692,6 +761,12 @@ document.addEventListener('click', event => {
   }
   const deleteButton = event.target.closest('[data-delete-question]');
   if (deleteButton) {
+    if (deleteButton.dataset.deleteRound === 'tie') {
+      data.tieBreakerQuestion = null;
+      saveData();
+      renderSetup();
+      return;
+    }
     const collectionName = deleteButton.dataset.deleteRound === '2' ? 'round2Questions' : 'questions';
     data[collectionName] = data[collectionName].filter(question => String(question.id) !== deleteButton.dataset.deleteQuestion);
     saveData();
@@ -715,6 +790,7 @@ document.addEventListener('click', event => {
     'open-setup': openSetup,
     'go-home': () => showScreen('homeScreen'),
     'add-question-round1': () => addQuestion(1),
+    'add-tie-breaker': () => addQuestion('tie'),
     'add-question-round2': () => addQuestion(2),
     'spin': spinWheel,
     'result-action': resultAction,
@@ -788,7 +864,7 @@ function registerWebMCP() {
     try { Promise.resolve(context.registerTool(tool)).catch(() => {}); } catch (error) {}
   };
   register({ name: 'start_quiz_game', title: 'Bắt đầu trò chơi', description: 'Bắt đầu vòng 1 từ câu hỏi đầu tiên với điểm số bằng 0.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute() { startGame(); return { started: true, round: 1, question_count: data.questions.length, team_count: data.teams.length }; } });
-  register({ name: 'read_quiz_setup', title: 'Xem cấu hình trò chơi', description: 'Đọc số câu hỏi ở hai vòng và danh sách đội hiện đang được cấu hình.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute() { return { round_1_question_count: data.questions.length, round_2_question_count: data.round2Questions.length, teams: data.teams.map(team => ({ id: team.id, name: team.name })) }; } });
+  register({ name: 'read_quiz_setup', title: 'Xem cấu hình trò chơi', description: 'Đọc số câu hỏi ở hai vòng và danh sách đội hiện đang được cấu hình.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute() { return { round_1_question_count: data.questions.length, has_tie_breaker_question: Boolean(data.tieBreakerQuestion), round_2_question_count: data.round2Questions.length, teams: data.teams.map(team => ({ id: team.id, name: team.name })) }; } });
 }
 
 updateHomeStats();

@@ -50,6 +50,12 @@
   background: rgba(86, 214, 210, .08);
 }
 
+.tie-break-tag {
+  color: var(--pink);
+  border-color: rgba(255, 79, 135, .42);
+  background: rgba(255, 79, 135, .08);
+}
+
 .round-divider {
   height: 1px;
   margin: 3rem 0;

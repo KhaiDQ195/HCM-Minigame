@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260921-3" />
-  <link rel="stylesheet" href="round2.css?v=20260921-3" />
+  <link rel="stylesheet" href="styles.css?v=20260921-4" />
+  <link rel="stylesheet" href="round2.css?v=20260921-4" />
 </head>
 <body>
   <div id="app">
@@ -62,6 +62,9 @@
             <div class="panel-heading"><div><p class="mini-label">NGÂN HÀNG CÂU HỎI</p><h3>Câu hỏi</h3></div><span class="autosave">● Tự động lưu</span></div>
             <div class="question-section-title"><div><span class="round-tag">VÒNG 1</span><h4>Câu hỏi đồng đội</h4><p>Điểm được tính cho 5 nhóm chơi.</p></div><button class="btn btn-primary" data-action="add-question-round1">＋ Thêm câu hỏi</button></div>
             <div id="questionsEditor" class="questions-editor"></div>
+            <div class="round-divider"></div>
+            <div class="question-section-title"><div><span class="round-tag tie-break-tag">PHÂN ĐỊNH</span><h4>Câu hỏi bổ sung</h4><p>Chỉ sử dụng khi có từ 2 đội trở lên đồng hạng nhất sau Vòng 1.</p></div><button id="tieBreakerAddButton" class="btn btn-primary" data-action="add-tie-breaker">＋ Thêm câu hỏi</button></div>
+            <div id="tieBreakerQuestionEditor" class="questions-editor"></div>
             <div class="round-divider"></div>
             <div class="question-section-title"><div><span class="round-tag accent">VÒNG 2</span><h4>Câu hỏi cá nhân</h4><p>Được sử dụng sau khi vòng 1 kết thúc.</p></div><button class="btn btn-primary" data-action="add-question-round2">＋ Thêm câu hỏi</button></div>
             <div id="round2QuestionsEditor" class="questions-editor"></div>
@@ -211,6 +214,6 @@
   <dialog id="rulesDialog" class="modal"><div class="modal-head"><div><p id="rulesKicker" class="mini-label">THE FINAL THREE</p><h3 id="rulesTitle">Luật chơi</h3></div><button class="icon-btn" data-action="close-rules" aria-label="Đóng">×</button></div><div id="rulesDisplay" class="rules-display"></div></dialog>
   <dialog id="exitDialog" class="modal small-modal"><h3>Thoát trò chơi?</h3><p>Điểm của lượt chơi hiện tại sẽ bị mất.</p><div class="modal-actions"><button class="btn btn-ghost" data-action="cancel-exit">Ở lại</button><button class="btn btn-danger" data-action="exit-game">Thoát</button></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260921-3"></script>
+  <script src="app.js?v=20260921-4"></script>
 </body>
 </html>
