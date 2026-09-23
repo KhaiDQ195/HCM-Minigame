@@ -5,6 +5,106 @@ const PLAYER_COLORS = ['#56d6d2', '#ffd84d', '#ff4f87', '#4d83ff', '#b58cff', '#
 const TEAM_IDS = [1, 2, 4, 5, 6];
 const REWARDS = [1, .5, .25];
 const ROUND1_TIME_LIMITS = [15, 10, 5];
+const DEFAULT_CONTENT_VERSION = 1;
+
+const defaultRound1Questions = [
+  {
+    id: 'default-r1-1',
+    text: 'Trong tác phẩm "Đường cách mệnh" (1927), Hồ Chí Minh đã sử dụng hình tượng nào để khẳng định tính tất yếu về vai trò lãnh đạo của Đảng Cộng sản đối với con thuyền cách mạng?',
+    options: ['Ngọn đuốc soi đường', 'Kiến trúc sư trưởng', 'Người cầm lái', 'Người lính tiên phong'],
+    correct: 2
+  },
+  {
+    id: 'default-r1-2',
+    text: 'Điểm độc đáo và sáng tạo của Hồ Chí Minh khi bàn về các nhân tố hình thành Đảng Cộng sản Việt Nam so với học thuyết Mác - Lênin là gì?',
+    options: ['Loại bỏ vai trò của tri thức cách mạng', 'Chỉ nhấn mạnh vào giai cấp công nhân', 'Coi phong trào nông dân là nhân tố quyết định', 'Có nhân tố phong trào yêu nước'],
+    correct: 3
+  },
+  {
+    id: 'default-r1-3',
+    text: 'Bản chất giai cấp công nhân của Nhà nước Việt Nam theo tư tưởng Hồ Chí Minh thống nhất với tính nhân dân và tính dân tộc vì lý do cốt lõi nào?',
+    options: ['Vì tất cả các giai tầng trong xã hội đều phải trở thành công nhân để được bảo vệ', 'Vì đại đa số người dân Việt Nam đều là công nhân làm việc trong các nhà máy', 'Vì Nhà nước chỉ phục vụ duy nhất quyền lợi riêng biệt của giai cấp công nhân', 'Vì lợi ích của giai cấp công nhân thống nhất với lợi ích của nhân dân lao động và của toàn dân tộc'],
+    correct: 3
+  },
+  {
+    id: 'default-r1-4',
+    text: 'Trong quan điểm về Nhà nước do nhân dân, Hồ Chí Minh cho rằng nhân dân thực hiện quyền làm chủ thông qua hai hình thức dân chủ nào?',
+    options: ['Dân chủ trực tiếp và dân chủ gián tiếp (đại diện)', 'Dân chủ kinh tế và dân chủ quân sự', 'Dân chủ nội bộ và dân chủ xã hội', 'Dân chủ tập trung và dân chủ tự do'],
+    correct: 0
+  },
+  {
+    id: 'default-r1-5',
+    text: 'Việc Hồ Chí Minh đề nghị tổ chức Tổng tuyển cử với chế độ phổ thông đầu phiếu ngay sau khi giành độc lập (1945) nhằm mục đích chính yếu nào?',
+    options: ['Chỉ để thử nghiệm mô hình dân chủ phương Tây', 'Thanh lọc các thành phần phản động ra khỏi bộ máy', 'Xây dựng nền tảng pháp lý và tính hợp hiến cho Nhà nước mới', 'Thỏa mãn yêu cầu của các nước đồng minh đang vào giải giáp'],
+    correct: 2
+  },
+  {
+    id: 'default-r1-6',
+    text: 'Để đảm bảo tính hợp hiến và hợp pháp của Chính phủ mới sau Cách mạng Tháng Tám, Hồ Chí Minh đã đề nghị tổ chức sự kiện quan trọng nào?',
+    options: ['Hội nghị ký kết các hiệp ước quốc tế', 'Cuộc Tổng tuyển cử với chế độ phổ thông đầu phiếu', 'Lễ ra mắt Chính phủ lâm thời tại quảng trường Ba Đình', 'Đại hội đại biểu toàn quốc của Đảng'],
+    correct: 1
+  },
+  {
+    id: 'default-r1-7',
+    text: "Trong tư tưởng Hồ Chí Minh về Nhà nước pháp quyền, việc 'thượng tôn pháp luật' phải đi đôi với công tác nào để đạt hiệu quả cao nhất?",
+    options: ['Giáo dục pháp luật và nâng cao trình độ dân trí', 'Hạn chế quyền phê bình chính quyền của nhân dân', 'Giảm bớt số lượng các cơ quan tư pháp', 'Tăng cường các biện pháp trừng phạt khắc nghiệt'],
+    correct: 0
+  },
+  {
+    id: 'default-r1-8',
+    text: "Khái niệm 'Pháp quyền nhân nghĩa' trong tư tưởng Hồ Chí Minh có đặc điểm gì nổi bật?",
+    options: ['Sử dụng đạo đức thay thế hoàn toàn cho các văn bản pháp luật', 'Chỉ áp dụng các quy định của Nho giáo trong quản lý xã hội', 'Pháp luật mang tính nhân văn, vì con người và bảo vệ quyền con người', 'Ưu tiên bảo vệ quyền lợi của những người có địa vị cao trong xã hội'],
+    correct: 2
+  },
+  {
+    id: 'default-r1-9',
+    text: 'Hồ Chí Minh phê phán hiện tượng nào sau đây là thiếu tính nghiêm minh của pháp luật?',
+    options: ['Cho phép nhân dân tham gia soạn thảo Hiến pháp', 'Ban hành quá nhiều đạo luật cùng một lúc', 'Thưởng có khi quá rộng, mà phạt thì không nghiêm', 'Đào tạo quá nhiều luật sư và thẩm phán'],
+    correct: 2
+  },
+  {
+    id: 'default-r1-10',
+    text: "Mối quan hệ giữa 'Đảng lãnh đạo' và 'Nhà nước quản lý' theo tư tưởng Hồ Chí Minh được thể hiện như thế nào?",
+    options: ['Nhà nước hoàn toàn độc lập và không cần sự hướng dẫn của Đảng', 'Đảng lãnh đạo bằng đường lối, chủ trương để Nhà nước cụ thể hóa thành luật pháp và tổ chức thực hiện', 'Đảng trực tiếp làm thay mọi công việc quản lý hàng ngày của chính quyền', 'Đảng chỉ tập trung vào kinh tế, còn Nhà nước chỉ tập trung vào quân sự'],
+    correct: 1
+  }
+];
+
+const defaultTieBreakerQuestion = {
+  id: 'default-tie-1',
+  text: 'Sinh viên cần làm gì để vận dụng tốt tư tưởng Hồ Chí Minh vào việc xây dựng Nhà nước hiện nay?',
+  options: ['Luôn có thái độ phê phán mọi chính sách mà không tìm hiểu kỹ', 'Đợi đến khi tốt nghiệp mới bắt đầu tìm hiểu về pháp luật', 'Tự giác học tập, tuân thủ pháp luật và tham gia giám sát các hoạt động của bộ máy nhà nước', 'Chỉ tập trung vào chuyên môn cá nhân và không cần quan tâm đến chính trị'],
+  correct: 2
+};
+
+const defaultRound2Questions = [
+  {
+    id: 'default-r2-1',
+    text: 'Trong quan điểm về một Nhà nước pháp quyền, Hồ Chí Minh đã đưa ra yêu cầu nào sau đây để đảm bảo tính nghiêm minh của pháp luật?',
+    options: ['Chỉ áp dụng pháp luật đối với những sai phạm mang tính chất kinh tế.', 'Cho phép cán bộ cấp cao được hưởng ngoại lệ nếu có công lao lớn.', 'Ưu tiên giáo dục đạo đức hơn là thực thi các hình phạt nghiêm khắc.', 'Pháp luật phải đúng và đủ, tuyệt đối không có vùng cấm.'],
+    correct: 3
+  },
+  {
+    id: 'default-r2-2',
+    text: 'Hồ Chí Minh phê phán hiện tượng nào là "giặc nội xâm" làm tha hóa bộ máy Nhà nước và làm mất lòng tin của nhân dân?',
+    options: ['Sự thiếu hụt về trang thiết bị kỹ thuật hiện đại.', 'Trình độ chuyên môn của cán bộ còn thấp.', 'Tham ô, lãng phí, quan liêu.', 'Sự khác biệt về quan điểm giữa các thế hệ cán bộ.'],
+    correct: 2
+  },
+  {
+    id: 'default-r2-3',
+    text: "Khi một tổ chức lãnh đạo áp dụng sai lệch nguyên tắc 'Tập thể lãnh đạo, cá nhân phụ trách' bằng cách đẩy mọi việc cho tập thể quyết định mà không phân công trách nhiệm cụ thể, hệ quả tiêu cực nào sau đây dễ xảy ra nhất?",
+    options: ['Gây ra hiện tượng độc đoán, chuyên quyền và mất dân chủ trong nội bộ tổ chức.', 'Làm cho các quyết định được ban hành nhanh chóng và hiệu quả hơn do có sự đồng thuận cao.', 'Dẫn đến tình trạng dựa dẫm, ỷ lại vào tập thể và không ai chịu trách nhiệm chính khi có sai sót.', 'Giúp tăng cường tính chủ động và sáng tạo của mỗi cá nhân trong việc thực hiện nhiệm vụ.'],
+    correct: 2
+  }
+];
+
+function cloneQuestionBank(questions) {
+  return questions.map(question => ({ ...question, options: [...question.options] }));
+}
+
+function cloneQuestion(question) {
+  return { ...question, options: [...question.options] };
+}
 
 const legacyRound1Rules = `VÒNG 1 · ĐỒNG ĐỘI
 1. Trước mỗi câu hỏi, người điều phối quay vòng quay để chọn ngẫu nhiên một đội trả lời.
@@ -54,12 +154,13 @@ const legacyExampleRound2Questions = [
 
 function initialData() {
   return {
+    contentVersion: DEFAULT_CONTENT_VERSION,
     round1Rules: defaultRound1Rules,
     round2Rules: defaultRound2Rules,
     teams: TEAM_IDS.map((id, i) => ({ id, name: `Nhóm ${id}`, color: TEAM_COLORS[i] })),
-    questions: [],
-    tieBreakerQuestion: null,
-    round2Questions: [],
+    questions: cloneQuestionBank(defaultRound1Questions),
+    tieBreakerQuestion: cloneQuestion(defaultTieBreakerQuestion),
+    round2Questions: cloneQuestionBank(defaultRound2Questions),
     round2Players: []
   };
 }
@@ -89,18 +190,40 @@ function isLegacyExampleSet(questions, examples) {
       && question.options?.every((option, optionIndex) => option === examples[index].options[optionIndex]));
 }
 
+function isPlaceholderQuestionSet(questions) {
+  return Array.isArray(questions)
+    && questions.length > 0
+    && questions.every(question => question.text?.trim() === 'Câu hỏi mới'
+      && question.options?.every((option, index) => option?.trim() === `Đáp án ${String.fromCharCode(65 + index)}`));
+}
+
+function migrateQuestionBank(savedQuestions, legacyExamples, defaults, seedDefaults) {
+  const questions = isLegacyExampleSet(savedQuestions, legacyExamples)
+    ? []
+    : (Array.isArray(savedQuestions) ? savedQuestions : []);
+  return seedDefaults && (!questions.length || isPlaceholderQuestionSet(questions))
+    ? cloneQuestionBank(defaults)
+    : questions;
+}
+
 function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY));
     if (saved?.teams?.length) {
       const migratedRules = splitLegacyRules(saved.rules);
+      const seedDefaults = saved.contentVersion !== DEFAULT_CONTENT_VERSION;
+      const savedTieBreaker = saved.tieBreakerQuestion;
       return {
         ...initialData(),
         ...saved,
+        contentVersion: DEFAULT_CONTENT_VERSION,
         round1Rules: migrateRound1Rules(typeof saved.round1Rules === 'string' ? saved.round1Rules : migratedRules.round1Rules),
         round2Rules: typeof saved.round2Rules === 'string' ? saved.round2Rules : migratedRules.round2Rules,
-        questions: isLegacyExampleSet(saved.questions, legacyExampleQuestions) ? [] : (Array.isArray(saved.questions) ? saved.questions : []),
-        round2Questions: isLegacyExampleSet(saved.round2Questions, legacyExampleRound2Questions) ? [] : (Array.isArray(saved.round2Questions) ? saved.round2Questions : []),
+        questions: migrateQuestionBank(saved.questions, legacyExampleQuestions, defaultRound1Questions, seedDefaults),
+        tieBreakerQuestion: seedDefaults && (!savedTieBreaker || savedTieBreaker.text?.trim() === 'Câu hỏi phân định')
+          ? cloneQuestion(defaultTieBreakerQuestion)
+          : (savedTieBreaker || null),
+        round2Questions: migrateQuestionBank(saved.round2Questions, legacyExampleRound2Questions, defaultRound2Questions, seedDefaults),
         round2Players: Array.isArray(saved.round2Players) ? saved.round2Players : []
       };
     }
@@ -109,6 +232,7 @@ function loadData() {
 }
 
 let data = loadData();
+try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (error) {}
 let game = null;
 let round2 = null;
 let wheelRotation = 0;
